@@ -3,115 +3,60 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KodNest Premium Build System</title>
+  <title>Job Notification Tracker - KodNest</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="design-system.css">
+  <link rel="stylesheet" href="navigation.css">
+  <link rel="stylesheet" href="pages.css">
+  <link rel="stylesheet" href="jobs.css">
 </head>
 <body>
-  <div class="page-container">
-    
-    <!-- TOP BAR -->
-    <div class="top-bar">
-      <div class="top-bar__project">Project Name</div>
-      <div class="top-bar__progress">Step 1 / 5</div>
-      <div class="top-bar__status top-bar__status--not-started">Not Started</div>
-    </div>
-
-    <!-- CONTEXT HEADER -->
-    <div class="context-header">
-      <h1 class="context-header__title">Build Your Product Foundation</h1>
-      <p class="context-header__subtitle">Define the core structure and requirements for your application.</p>
-    </div>
-
-    <!-- MAIN WORKSPACE -->
-    <div class="workspace">
+  
+  <!-- TOP NAVIGATION -->
+  <nav class="nav">
+    <div class="nav__container">
+      <button class="nav__hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
       
-      <!-- PRIMARY WORKSPACE (70%) -->
-      <div class="workspace__primary">
-        <div class="card">
-          <h3 class="card__title">Primary Workspace</h3>
-          <div class="card__content">
-            <p>This is where the main product interaction happens. Clean cards, predictable components, no crowding.</p>
-            
-            <label class="text-small text-muted mb-xs" style="display: block;">Input Example</label>
-            <input type="text" class="input mb-md" placeholder="Enter your project name">
-            
-            <button class="btn btn--primary">Primary Action</button>
-            <button class="btn btn--secondary" style="margin-left: 8px;">Secondary Action</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3 class="card__title">Additional Content Card</h3>
-          <div class="card__content">
-            <p>Multiple cards can be stacked vertically with consistent spacing. Each card maintains the same visual treatment.</p>
-          </div>
-        </div>
-
-        <!-- ERROR STATE EXAMPLE -->
-        <div class="error-message">
-          <div class="error-message__title">Connection Failed</div>
-          <div class="error-message__text">Unable to connect to the server. Check your internet connection and try again.</div>
-        </div>
-
-        <!-- EMPTY STATE EXAMPLE -->
-        <div class="card">
-          <div class="empty-state">
-            <div class="empty-state__title">No Items Yet</div>
-            <p class="empty-state__text">Get started by creating your first item. It only takes a moment.</p>
-            <button class="btn btn--primary">Create First Item</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- SECONDARY PANEL (30%) -->
-      <div class="workspace__secondary">
-        <div class="panel-section">
-          <div class="panel-section__title">Step Explanation</div>
-          <p class="panel-section__text">This panel provides context and guidance for the current step. Instructions are clear and concise.</p>
-        </div>
-
-        <div class="panel-section">
-          <div class="panel-section__title">Prompt</div>
-          <div class="prompt-box">Create a landing page with hero section, features grid, and contact form</div>
-          <button class="btn btn--secondary btn--full">Copy Prompt</button>
-          <button class="btn btn--primary btn--full">Build in Lovable</button>
-        </div>
-
-        <div class="panel-section">
-          <div class="panel-section__title">Actions</div>
-          <button class="btn btn--success btn--full">It Worked</button>
-          <button class="btn btn--secondary btn--full">Report Error</button>
-          <button class="btn btn--secondary btn--full">Add Screenshot</button>
-        </div>
-      </div>
+      <ul class="nav__menu" id="navMenu">
+        <li class="nav__item">
+          <a href="#dashboard" class="nav__link" data-route="dashboard">Dashboard</a>
+        </li>
+        <li class="nav__item">
+          <a href="#saved" class="nav__link" data-route="saved">Saved</a>
+        </li>
+        <li class="nav__item">
+          <a href="#digest" class="nav__link" data-route="digest">Digest</a>
+        </li>
+        <li class="nav__item">
+          <a href="#settings" class="nav__link" data-route="settings">Settings</a>
+        </li>
+        <li class="nav__item">
+          <a href="#proof" class="nav__link" data-route="proof">Proof</a>
+        </li>
+      </ul>
     </div>
+  </nav>
 
-    <!-- PROOF FOOTER -->
-    <div class="proof-footer">
-      <div class="proof-footer__title">Proof of Completion</div>
-      <div class="proof-checklist">
-        <div class="proof-item">
-          <div class="proof-item__checkbox"></div>
-          <span class="proof-item__label">UI Built</span>
-        </div>
-        <div class="proof-item">
-          <div class="proof-item__checkbox"></div>
-          <span class="proof-item__label">Logic Working</span>
-        </div>
-        <div class="proof-item">
-          <div class="proof-item__checkbox proof-item__checkbox--checked"></div>
-          <span class="proof-item__label">Test Passed</span>
-        </div>
-        <div class="proof-item">
-          <div class="proof-item__checkbox"></div>
-          <span class="proof-item__label">Deployed</span>
-        </div>
-      </div>
+  <!-- ROUTE CONTENT -->
+  <main class="route-container" id="routeContainer">
+    <!-- Content will be injected here -->
+  </main>
+
+  <!-- JOB MODAL -->
+  <div class="modal" id="jobModal">
+    <div class="modal__content" id="modalContent">
+      <!-- Modal content will be injected here -->
     </div>
-
   </div>
+
+  <script src="data.js"></script>
+  <script src="app-logic.js"></script>
+  <script src="router-updated.js"></script>
 </body>
 </html>
