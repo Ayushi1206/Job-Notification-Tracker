@@ -6,15 +6,100 @@ let currentFilters = {
   mode: '',
   experience: '',
   source: '',
-  sort: 'latest'
+  sort: 'latest',
+  showOnlyMatches: false
 };
 
 let selectedJobId = null;
+let userPreferences = null;
 
 // Get saved jobs from localStorage
 function getSavedJobs() {
   const saved = localStorage.getItem('savedJobs');
   return saved ? JSON.parse(saved) : [];
+}
+
+// Get user preferences from localStorage
+function getUserPreferences() {
+  const prefs = localStorage.getItem('jobTrackerPreferences');
+  return prefs ? JSON.parse(prefs) : null;
+}
+
+// Save user preferences to localStorage
+function saveUserPreferences(preferences) {
+  localStorage.setItem('jobTrackerPreferences', JSON.stringify(preferences));
+  userPreferences = preferences;
+}
+
+// Calculate match score for a job
+function calculateMatchScore(job) {
+  if (!userPreferences) return 0;
+  
+  let score = 0;
+  
+  // +25 if any roleKeyword appears in job.title (case-insensitive)
+  if (userPreferences.roleKeywords && userPreferences.roleKeywords.length > 0) {
+    const titleLower = job.title.toLowerCase();
+    for (const keyword of userPreferences.roleKeywords) {
+      if (titleLower.includes(keyword.toLowerCase().trim())) {
+        score += 25;
+        break;
+      }
+    }
+  }
+  
+  // +15 if any roleKeyword appears in job.description
+  if (userPreferences.roleKeywords && userPreferences.roleKeywords.length > 0) {
+    const descLower = job.description.toLowerCase();
+    for (const keyword of userPreferences.roleKeywords) {
+      if (descLower.includes(keyword.toLowerCase().trim())) {
+        score += 15;
+        break;
+      }
+    }
+  }
+  
+  // +15 if job.location matches preferredLocations
+  if (userPreferences.preferredLocations && userPreferences.preferredLocations.length > 0) {
+    if (userPreferences.preferredLocations.includes(job.location)) {
+      score += 15;
+    }
+  }
+  
+  // +10 if job.mode matches preferredMode
+  if (userPreferences.preferredMode && userPreferences.preferredMode.length > 0) {
+    if (userPreferences.preferredMode.includes(job.mode)) {
+      score += 10;
+    }
+  }
+  
+  // +10 if job.experience matches experienceLevel
+  if (userPreferences.experienceLevel && job.experience === userPreferences.experienceLevel) {
+    score += 10;
+  }
+  
+  // +15 if overlap between job.skills and user.skills (any match)
+  if (userPreferences.skills && userPreferences.skills.length > 0) {
+    const userSkillsLower = userPreferences.skills.map(s => s.toLowerCase().trim());
+    const jobSkillsLower = job.skills.map(s => s.toLowerCase().trim());
+    const hasOverlap = userSkillsLower.some(skill => jobSkillsLower.includes(skill));
+    if (hasOverlap) {
+      score += 15;
+    }
+  }
+  
+  // +5 if postedDaysAgo <= 2
+  if (job.postedDaysAgo <= 2) {
+    score += 5;
+  }
+  
+  // +5 if source is LinkedIn
+  if (job.source === 'LinkedIn') {
+    score += 5;
+  }
+  
+  // Cap score at 100
+  return Math.min(score, 100);
 }
 
 // Save job to localStorage
@@ -40,7 +125,13 @@ function isJobSaved(jobId) {
 
 // Filter and sort jobs
 function filterJobs(jobs) {
-  let filtered = jobs.filter(job => {
+  // Add match scores to jobs
+  const jobsWithScores = jobs.map(job => ({
+    ...job,
+    matchScore: calculateMatchScore(job)
+  }));
+  
+  let filtered = jobsWithScores.filter(job => {
     const matchesKeyword = !currentFilters.keyword || 
       job.title.toLowerCase().includes(currentFilters.keyword.toLowerCase()) ||
       job.company.toLowerCase().includes(currentFilters.keyword.toLowerCase());
@@ -57,12 +148,26 @@ function filterJobs(jobs) {
     const matchesSource = !currentFilters.source || 
       job.source === currentFilters.source;
     
-    return matchesKeyword && matchesLocation && matchesMode && matchesExperience && matchesSource;
+    // Show only matches filter
+    const matchesThreshold = !currentFilters.showOnlyMatches || 
+      (userPreferences && job.matchScore >= (userPreferences.minMatchScore || 40));
+    
+    return matchesKeyword && matchesLocation && matchesMode && matchesExperience && matchesSource && matchesThreshold;
   });
 
   // Sort
   if (currentFilters.sort === 'latest') {
     filtered.sort((a, b) => a.postedDaysAgo - b.postedDaysAgo);
+  } else if (currentFilters.sort === 'score') {
+    filtered.sort((a, b) => b.matchScore - a.matchScore);
+  } else if (currentFilters.sort === 'salary') {
+    filtered.sort((a, b) => {
+      const extractNumber = (str) => {
+        const match = str.match(/(\d+)/);
+        return match ? parseInt(match[1]) : 0;
+      };
+      return extractNumber(b.salaryRange) - extractNumber(a.salaryRange);
+    });
   }
 
   return filtered;
@@ -74,6 +179,15 @@ function renderJobCard(job, showUnsave = false) {
   const saveButtonText = showUnsave ? 'Unsave' : (isSaved ? 'Saved' : 'Save');
   const saveButtonClass = isSaved && !showUnsave ? 'btn--success' : 'btn--secondary';
   
+  // Match score badge
+  const matchScore = job.matchScore || 0;
+  let matchBadgeClass = 'match-badge--grey';
+  if (matchScore >= 80) matchBadgeClass = 'match-badge--green';
+  else if (matchScore >= 60) matchBadgeClass = 'match-badge--amber';
+  else if (matchScore >= 40) matchBadgeClass = 'match-badge--neutral';
+  
+  const matchBadge = userPreferences ? `<span class="match-badge ${matchBadgeClass}">${matchScore}% Match</span>` : '';
+  
   return `
     <div class="job-card">
       <div class="job-card__header">
@@ -81,7 +195,10 @@ function renderJobCard(job, showUnsave = false) {
           <h3 class="job-card__title">${job.title}</h3>
           <p class="job-card__company">${job.company}</p>
         </div>
-        <span class="job-card__source job-card__source--${job.source.toLowerCase()}">${job.source}</span>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          ${matchBadge}
+          <span class="job-card__source job-card__source--${job.source.toLowerCase()}">${job.source}</span>
+        </div>
       </div>
       
       <div class="job-card__details">
@@ -166,6 +283,52 @@ function unsaveJobHandler(jobId) {
 function updateFilter(filterName, value) {
   currentFilters[filterName] = value;
   renderRoute('dashboard');
+}
+
+// Toggle show only matches
+function toggleShowOnlyMatches() {
+  currentFilters.showOnlyMatches = !currentFilters.showOnlyMatches;
+  renderRoute('dashboard');
+}
+
+// Save preferences from form
+function savePreferencesFromForm() {
+  const roleKeywords = document.getElementById('roleKeywords').value
+    .split(',')
+    .map(k => k.trim())
+    .filter(k => k.length > 0);
+  
+  const locationSelects = document.querySelectorAll('#preferredLocations option:checked');
+  const preferredLocations = Array.from(locationSelects).map(opt => opt.value);
+  
+  const modeCheckboxes = document.querySelectorAll('input[name="preferredMode"]:checked');
+  const preferredMode = Array.from(modeCheckboxes).map(cb => cb.value);
+  
+  const experienceLevel = document.getElementById('experienceLevel').value;
+  
+  const skills = document.getElementById('skills').value
+    .split(',')
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
+  
+  const minMatchScore = parseInt(document.getElementById('minMatchScore').value);
+  
+  const preferences = {
+    roleKeywords,
+    preferredLocations,
+    preferredMode,
+    experienceLevel,
+    skills,
+    minMatchScore
+  };
+  
+  saveUserPreferences(preferences);
+  alert('Preferences saved successfully!');
+}
+
+// Initialize preferences on load
+function initializePreferences() {
+  userPreferences = getUserPreferences();
 }
 
 // Close modal on outside click

@@ -273,3 +273,64 @@
     width: 100%;
   }
 }
+
+/* MATCH BADGE */
+.match-badge {
+  padding: 4px var(--space-xs);
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.match-badge--green {
+  background: #E8F5E9;
+  color: var(--success);
+}
+
+.match-badge--amber {
+  background: #FFF8E1;
+  color: var(--warning);
+}
+
+.match-badge--neutral {
+  background: #F5F5F5;
+  color: #666666;
+}
+
+.match-badge--grey {
+  background: #FAFAFA;
+  color: #999999;
+}
+
+/* PREFERENCES BANNER */
+.preferences-banner {
+  background: #FFF5F5;
+  border: 1px solid #FFD6D6;
+  border-radius: 4px;
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.preferences-banner__content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+/* MATCH TOGGLE */
+.match-toggle {
+  margin-bottom: var(--space-md);
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.toggle-label input[type="checkbox"] {
+  cursor: pointer;
+}

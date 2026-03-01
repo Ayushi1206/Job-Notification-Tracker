@@ -29,10 +29,36 @@ function renderDashboard() {
   const experiences = ['Fresher', '0-1', '1-3', '3-5'];
   const sources = ['LinkedIn', 'Naukri', 'Indeed'];
   
+  // Preferences banner
+  const preferencesBanner = !userPreferences ? `
+    <div class="preferences-banner">
+      <div class="preferences-banner__content">
+        <strong>Set your preferences to activate intelligent matching.</strong>
+        <button class="btn btn--primary btn--small" onclick="navigateTo('settings')">Configure Preferences</button>
+      </div>
+    </div>
+  ` : '';
+  
+  // Show only matches toggle
+  const matchToggle = userPreferences ? `
+    <div class="match-toggle">
+      <label class="toggle-label">
+        <input 
+          type="checkbox" 
+          ${currentFilters.showOnlyMatches ? 'checked' : ''}
+          onchange="toggleShowOnlyMatches()"
+        >
+        <span>Show only jobs above my threshold (${userPreferences.minMatchScore || 40}%)</span>
+      </label>
+    </div>
+  ` : '';
+  
   return `
     <div class="route-page">
       <h1 class="route-page__title">Dashboard</h1>
       <p class="route-page__subtitle">Browse and track job opportunities.</p>
+      
+      ${preferencesBanner}
       
       <div class="filter-bar">
         <input 
@@ -65,16 +91,20 @@ function renderDashboard() {
         
         <select class="input filter-select" onchange="updateFilter('sort', this.value)">
           <option value="latest" ${currentFilters.sort === 'latest' ? 'selected' : ''}>Latest First</option>
+          <option value="score" ${currentFilters.sort === 'score' ? 'selected' : ''}>Match Score</option>
+          <option value="salary" ${currentFilters.sort === 'salary' ? 'selected' : ''}>Salary</option>
         </select>
       </div>
+      
+      ${matchToggle}
       
       <div class="jobs-count">${filteredJobs.length} jobs found</div>
       
       <div class="jobs-grid">
         ${filteredJobs.length > 0 ? filteredJobs.map(job => renderJobCard(job)).join('') : `
           <div class="empty-state">
-            <div class="empty-state__title">No jobs match your filters.</div>
-            <p class="empty-state__text">Try adjusting your search criteria.</p>
+            <div class="empty-state__title">No roles match your criteria.</div>
+            <p class="empty-state__text">Adjust filters or lower threshold to see more opportunities.</p>
           </div>
         `}
       </div>
@@ -122,6 +152,18 @@ function renderDigest() {
 }
 
 function renderSettings() {
+  const prefs = userPreferences || {
+    roleKeywords: [],
+    preferredLocations: [],
+    preferredMode: [],
+    experienceLevel: '',
+    skills: [],
+    minMatchScore: 40
+  };
+  
+  // Get unique locations from jobs data
+  const locations = [...new Set(jobsData.map(j => j.location))].sort();
+  
   return `
     <div class="route-page">
       <h1 class="route-page__title">Settings</h1>
@@ -129,38 +171,82 @@ function renderSettings() {
       
       <div class="settings-form">
         <div class="form-group">
-          <label class="form-label">Role Keywords</label>
-          <input type="text" class="input" placeholder="e.g. Product Manager, Senior Engineer">
+          <label class="form-label">Role Keywords (comma-separated)</label>
+          <input 
+            type="text" 
+            id="roleKeywords" 
+            class="input" 
+            placeholder="e.g. Developer, Engineer, Intern"
+            value="${prefs.roleKeywords.join(', ')}"
+          >
+          <p class="form-hint">Keywords to match in job titles and descriptions</p>
         </div>
         
         <div class="form-group">
-          <label class="form-label">Preferred Locations</label>
-          <input type="text" class="input" placeholder="e.g. San Francisco, Remote">
+          <label class="form-label">Preferred Locations (hold Ctrl/Cmd for multiple)</label>
+          <select id="preferredLocations" class="input" multiple size="5">
+            ${locations.map(loc => `
+              <option value="${loc}" ${prefs.preferredLocations.includes(loc) ? 'selected' : ''}>${loc}</option>
+            `).join('')}
+          </select>
         </div>
         
         <div class="form-group">
           <label class="form-label">Work Mode</label>
-          <select class="input">
-            <option value="">Select mode</option>
-            <option value="remote">Remote</option>
-            <option value="hybrid">Hybrid</option>
-            <option value="onsite">Onsite</option>
-          </select>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" name="preferredMode" value="Remote" ${prefs.preferredMode.includes('Remote') ? 'checked' : ''}>
+              <span>Remote</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="preferredMode" value="Hybrid" ${prefs.preferredMode.includes('Hybrid') ? 'checked' : ''}>
+              <span>Hybrid</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="preferredMode" value="Onsite" ${prefs.preferredMode.includes('Onsite') ? 'checked' : ''}>
+              <span>Onsite</span>
+            </label>
+          </div>
         </div>
         
         <div class="form-group">
           <label class="form-label">Experience Level</label>
-          <select class="input">
-            <option value="">Select level</option>
-            <option value="entry">Entry Level</option>
-            <option value="mid">Mid Level</option>
-            <option value="senior">Senior</option>
-            <option value="lead">Lead</option>
-            <option value="executive">Executive</option>
+          <select id="experienceLevel" class="input">
+            <option value="">Any</option>
+            <option value="Fresher" ${prefs.experienceLevel === 'Fresher' ? 'selected' : ''}>Fresher</option>
+            <option value="0-1" ${prefs.experienceLevel === '0-1' ? 'selected' : ''}>0-1 Years</option>
+            <option value="1-3" ${prefs.experienceLevel === '1-3' ? 'selected' : ''}>1-3 Years</option>
+            <option value="3-5" ${prefs.experienceLevel === '3-5' ? 'selected' : ''}>3-5 Years</option>
           </select>
         </div>
         
-        <button class="btn btn--primary">Save Preferences</button>
+        <div class="form-group">
+          <label class="form-label">Skills (comma-separated)</label>
+          <input 
+            type="text" 
+            id="skills" 
+            class="input" 
+            placeholder="e.g. React, Python, AWS"
+            value="${prefs.skills.join(', ')}"
+          >
+          <p class="form-hint">Skills you have or want to work with</p>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Minimum Match Score: <span id="scoreValue">${prefs.minMatchScore}</span>%</label>
+          <input 
+            type="range" 
+            id="minMatchScore" 
+            class="slider" 
+            min="0" 
+            max="100" 
+            value="${prefs.minMatchScore}"
+            oninput="document.getElementById('scoreValue').textContent = this.value"
+          >
+          <p class="form-hint">Jobs below this score will be hidden when filter is enabled</p>
+        </div>
+        
+        <button class="btn btn--primary" onclick="savePreferencesFromForm()">Save Preferences</button>
       </div>
     </div>
   `;
@@ -237,3 +323,6 @@ window.addEventListener('hashchange', handleHashChange);
 
 // Initial render
 handleHashChange();
+
+// Initialize preferences on load
+initializePreferences();
