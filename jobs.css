@@ -1,0 +1,275 @@
+/* FILTER BAR */
+.filter-bar {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+  gap: var(--space-sm);
+  margin: var(--space-lg) 0;
+}
+
+.filter-input,
+.filter-select {
+  margin-bottom: 0;
+}
+
+/* JOBS COUNT */
+.jobs-count {
+  font-size: 14px;
+  color: #666666;
+  margin-bottom: var(--space-md);
+}
+
+/* JOBS GRID */
+.jobs-grid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+/* JOB CARD */
+.job-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: var(--space-md);
+  transition: border-color var(--transition);
+}
+
+.job-card:hover {
+  border-color: var(--accent-primary);
+}
+
+.job-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-sm);
+}
+
+.job-card__title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.job-card__company {
+  font-size: 16px;
+  color: #666666;
+}
+
+.job-card__source {
+  padding: 4px var(--space-xs);
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.job-card__source--linkedin {
+  background: #E7F3FF;
+  color: #0A66C2;
+}
+
+.job-card__source--naukri {
+  background: #FFF4E6;
+  color: #FF6B00;
+}
+
+.job-card__source--indeed {
+  background: #F0F4FF;
+  color: #2164F3;
+}
+
+.job-card__details {
+  display: flex;
+  gap: var(--space-md);
+  margin-bottom: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.job-card__detail {
+  font-size: 14px;
+  color: #666666;
+}
+
+.job-card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border);
+}
+
+.job-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.job-card__salary {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.job-card__posted {
+  font-size: 12px;
+  color: #999999;
+}
+
+.job-card__actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.btn--small {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 14px;
+}
+
+/* MODAL */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+
+.modal__content {
+  background: var(--surface);
+  border-radius: 4px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--border);
+}
+
+.modal__title {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modal__close {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #666666;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+}
+
+.modal__close:hover {
+  color: var(--text-primary);
+}
+
+.modal__body {
+  padding: var(--space-md);
+}
+
+.modal__company {
+  font-size: 16px;
+  color: #666666;
+  margin-bottom: var(--space-xs);
+}
+
+.modal__meta {
+  font-size: 14px;
+  color: #999999;
+  margin-bottom: var(--space-md);
+}
+
+.modal__section {
+  margin-bottom: var(--space-md);
+}
+
+.modal__section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.modal__section p {
+  color: #333333;
+  line-height: 1.6;
+}
+
+.skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.skill-tag {
+  padding: 6px var(--space-sm);
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.modal__actions {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 1024px) {
+  .filter-bar {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .job-card__footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+
+  .job-card__actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .btn--small {
+    flex: 1;
+  }
+
+  .modal__content {
+    max-height: 95vh;
+  }
+
+  .modal__actions {
+    flex-direction: column;
+  }
+
+  .modal__actions .btn {
+    width: 100%;
+  }
+}

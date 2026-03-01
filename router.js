@@ -21,25 +21,88 @@ function renderLanding() {
 }
 
 function renderDashboard() {
+  const filteredJobs = filterJobs(jobsData);
+  
+  // Get unique values for dropdowns
+  const locations = [...new Set(jobsData.map(j => j.location))].sort();
+  const modes = ['Remote', 'Hybrid', 'Onsite'];
+  const experiences = ['Fresher', '0-1', '1-3', '3-5'];
+  const sources = ['LinkedIn', 'Naukri', 'Indeed'];
+  
   return `
     <div class="route-page">
       <h1 class="route-page__title">Dashboard</h1>
-      <div class="empty-state">
-        <div class="empty-state__title">No jobs yet.</div>
-        <p class="empty-state__text">In the next step, you will load a realistic dataset.</p>
+      <p class="route-page__subtitle">Browse and track job opportunities.</p>
+      
+      <div class="filter-bar">
+        <input 
+          type="text" 
+          class="input filter-input" 
+          placeholder="Search by title or company..."
+          value="${currentFilters.keyword}"
+          oninput="updateFilter('keyword', this.value)"
+        >
+        
+        <select class="input filter-select" onchange="updateFilter('location', this.value)">
+          <option value="">All Locations</option>
+          ${locations.map(loc => `<option value="${loc}" ${currentFilters.location === loc ? 'selected' : ''}>${loc}</option>`).join('')}
+        </select>
+        
+        <select class="input filter-select" onchange="updateFilter('mode', this.value)">
+          <option value="">All Modes</option>
+          ${modes.map(mode => `<option value="${mode}" ${currentFilters.mode === mode ? 'selected' : ''}>${mode}</option>`).join('')}
+        </select>
+        
+        <select class="input filter-select" onchange="updateFilter('experience', this.value)">
+          <option value="">All Experience</option>
+          ${experiences.map(exp => `<option value="${exp}" ${currentFilters.experience === exp ? 'selected' : ''}>${exp}</option>`).join('')}
+        </select>
+        
+        <select class="input filter-select" onchange="updateFilter('source', this.value)">
+          <option value="">All Sources</option>
+          ${sources.map(src => `<option value="${src}" ${currentFilters.source === src ? 'selected' : ''}>${src}</option>`).join('')}
+        </select>
+        
+        <select class="input filter-select" onchange="updateFilter('sort', this.value)">
+          <option value="latest" ${currentFilters.sort === 'latest' ? 'selected' : ''}>Latest First</option>
+        </select>
+      </div>
+      
+      <div class="jobs-count">${filteredJobs.length} jobs found</div>
+      
+      <div class="jobs-grid">
+        ${filteredJobs.length > 0 ? filteredJobs.map(job => renderJobCard(job)).join('') : `
+          <div class="empty-state">
+            <div class="empty-state__title">No jobs match your filters.</div>
+            <p class="empty-state__text">Try adjusting your search criteria.</p>
+          </div>
+        `}
       </div>
     </div>
   `;
 }
 
 function renderSaved() {
+  const savedJobIds = getSavedJobs();
+  const savedJobsData = jobsData.filter(job => savedJobIds.includes(job.id));
+  
   return `
     <div class="route-page">
       <h1 class="route-page__title">Saved</h1>
-      <div class="empty-state">
-        <div class="empty-state__title">No saved jobs yet.</div>
-        <p class="empty-state__text">Jobs you save will appear here for easy access.</p>
-      </div>
+      <p class="route-page__subtitle">Jobs you've saved for later.</p>
+      
+      ${savedJobsData.length > 0 ? `
+        <div class="jobs-count">${savedJobsData.length} saved jobs</div>
+        <div class="jobs-grid">
+          ${savedJobsData.map(job => renderJobCard(job, true)).join('')}
+        </div>
+      ` : `
+        <div class="empty-state">
+          <div class="empty-state__title">No saved jobs yet.</div>
+          <p class="empty-state__text">Jobs you save will appear here for easy access.</p>
+          <button class="btn btn--primary" onclick="navigateTo('dashboard')">Browse Jobs</button>
+        </div>
+      `}
     </div>
   `;
 }
@@ -48,6 +111,8 @@ function renderDigest() {
   return `
     <div class="route-page">
       <h1 class="route-page__title">Digest</h1>
+      <p class="route-page__subtitle">Your personalized daily job digest.</p>
+      
       <div class="empty-state">
         <div class="empty-state__title">No digest available.</div>
         <p class="empty-state__text">Your daily job digest will be delivered at 9AM.</p>
