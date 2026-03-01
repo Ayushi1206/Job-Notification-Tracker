@@ -73,6 +73,30 @@ function getStatusHistory() {
   return history ? JSON.parse(history) : [];
 }
 
+// Get test results from localStorage
+function getTestResults() {
+  const results = localStorage.getItem('jobTrackerTestResults');
+  return results ? JSON.parse(results) : {};
+}
+
+// Update test result
+function updateTestResult(testId, passed) {
+  const results = getTestResults();
+  results[testId] = passed;
+  localStorage.setItem('jobTrackerTestResults', JSON.stringify(results));
+  
+  // Re-render test page
+  renderRoute('test');
+}
+
+// Reset test status
+function resetTestStatus() {
+  if (confirm('Are you sure you want to reset all test results?')) {
+    localStorage.removeItem('jobTrackerTestResults');
+    renderRoute('test');
+  }
+}
+
 // Calculate match score for a job
 function calculateMatchScore(job) {
   if (!userPreferences) return 0;
