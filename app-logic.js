@@ -331,6 +331,139 @@ function initializePreferences() {
   userPreferences = getUserPreferences();
 }
 
+// Get today's date in YYYY-MM-DD format
+function getTodayDate() {
+  const today = new Date();
+  return today.toISOString().split('T')[0];
+}
+
+// Get digest for a specific date
+function getDigest(date) {
+  const key = `jobTrackerDigest_${date}`;
+  const digest = localStorage.getItem(key);
+  return digest ? JSON.parse(digest) : null;
+}
+
+// Save digest for a specific date
+function saveDigest(date, jobs) {
+  const key = `jobTrackerDigest_${date}`;
+  localStorage.setItem(key, JSON.stringify({
+    date,
+    jobs,
+    generatedAt: new Date().toISOString()
+  }));
+}
+
+// Generate today's digest
+function generateDigest() {
+  if (!userPreferences) {
+    alert('Please set your preferences first to generate a personalized digest.');
+    navigateTo('settings');
+    return;
+  }
+  
+  const today = getTodayDate();
+  
+  // Check if digest already exists for today
+  const existingDigest = getDigest(today);
+  if (existingDigest) {
+    alert('Digest already generated for today. Showing existing digest.');
+    renderRoute('digest');
+    return;
+  }
+  
+  // Calculate match scores for all jobs
+  const jobsWithScores = jobsData.map(job => ({
+    ...job,
+    matchScore: calculateMatchScore(job)
+  }));
+  
+  // Filter jobs with score >= minMatchScore
+  const minScore = userPreferences.minMatchScore || 40;
+  const matchingJobs = jobsWithScores.filter(job => job.matchScore >= minScore);
+  
+  if (matchingJobs.length === 0) {
+    alert('No matching roles found. Try adjusting your preferences or lowering your threshold.');
+    return;
+  }
+  
+  // Sort by matchScore descending, then postedDaysAgo ascending
+  matchingJobs.sort((a, b) => {
+    if (b.matchScore !== a.matchScore) {
+      return b.matchScore - a.matchScore;
+    }
+    return a.postedDaysAgo - b.postedDaysAgo;
+  });
+  
+  // Take top 10
+  const top10 = matchingJobs.slice(0, 10);
+  
+  // Save digest
+  saveDigest(today, top10);
+  
+  // Re-render digest page
+  renderRoute('digest');
+}
+
+// Copy digest to clipboard
+function copyDigestToClipboard() {
+  const today = getTodayDate();
+  const digest = getDigest(today);
+  
+  if (!digest) {
+    alert('No digest available. Generate one first.');
+    return;
+  }
+  
+  let text = `Top 10 Jobs For You — 9AM Digest\n`;
+  text += `Date: ${new Date(today).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}\n\n`;
+  
+  digest.jobs.forEach((job, index) => {
+    text += `${index + 1}. ${job.title}\n`;
+    text += `   Company: ${job.company}\n`;
+    text += `   Location: ${job.location} | ${job.mode}\n`;
+    text += `   Experience: ${job.experience}\n`;
+    text += `   Match Score: ${job.matchScore}%\n`;
+    text += `   Apply: ${job.applyUrl}\n\n`;
+  });
+  
+  text += `This digest was generated based on your preferences.\n`;
+  
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Digest copied to clipboard!');
+  }).catch(() => {
+    alert('Failed to copy. Please try again.');
+  });
+}
+
+// Create email draft
+function createEmailDraft() {
+  const today = getTodayDate();
+  const digest = getDigest(today);
+  
+  if (!digest) {
+    alert('No digest available. Generate one first.');
+    return;
+  }
+  
+  const subject = 'My 9AM Job Digest';
+  let body = `Top 10 Jobs For You — 9AM Digest%0D%0A`;
+  body += `Date: ${new Date(today).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}%0D%0A%0D%0A`;
+  
+  digest.jobs.forEach((job, index) => {
+    body += `${index + 1}. ${job.title}%0D%0A`;
+    body += `   Company: ${job.company}%0D%0A`;
+    body += `   Location: ${job.location} | ${job.mode}%0D%0A`;
+    body += `   Experience: ${job.experience}%0D%0A`;
+    body += `   Match Score: ${job.matchScore}%25%0D%0A`;
+    body += `   Apply: ${job.applyUrl}%0D%0A%0D%0A`;
+  });
+  
+  body += `This digest was generated based on your preferences.%0D%0A`;
+  
+  window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${body}`;
+}
+
 // Close modal on outside click
 window.onclick = function(event) {
   const modal = document.getElementById('jobModal');

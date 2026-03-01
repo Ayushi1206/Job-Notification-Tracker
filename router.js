@@ -138,14 +138,98 @@ function renderSaved() {
 }
 
 function renderDigest() {
+  const today = getTodayDate();
+  const digest = getDigest(today);
+  const todayFormatted = new Date(today).toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  
+  // Check if preferences are set
+  if (!userPreferences) {
+    return `
+      <div class="route-page">
+        <h1 class="route-page__title">Digest</h1>
+        <p class="route-page__subtitle">Your personalized daily job digest.</p>
+        
+        <div class="digest-blocking">
+          <div class="empty-state">
+            <div class="empty-state__title">Set preferences to generate a personalized digest.</div>
+            <p class="empty-state__text">Configure your job preferences to receive tailored job recommendations.</p>
+            <button class="btn btn--primary" onclick="navigateTo('settings')">Configure Preferences</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  
+  // If no digest exists, show generate button
+  if (!digest) {
+    return `
+      <div class="route-page">
+        <h1 class="route-page__title">Digest</h1>
+        <p class="route-page__subtitle">Your personalized daily job digest.</p>
+        
+        <div class="digest-generate">
+          <div class="card">
+            <h3 class="card__title">Generate Today's Digest</h3>
+            <div class="card__content">
+              <p>Generate your personalized 9AM job digest with the top 10 matching opportunities.</p>
+              <button class="btn btn--primary" onclick="generateDigest()">Generate Today's 9AM Digest (Simulated)</button>
+              <p class="digest-note">Demo Mode: Daily 9AM trigger simulated manually.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  
+  // Render digest
   return `
     <div class="route-page">
       <h1 class="route-page__title">Digest</h1>
       <p class="route-page__subtitle">Your personalized daily job digest.</p>
       
-      <div class="empty-state">
-        <div class="empty-state__title">No digest available.</div>
-        <p class="empty-state__text">Your daily job digest will be delivered at 9AM.</p>
+      <div class="digest-actions">
+        <button class="btn btn--secondary btn--small" onclick="copyDigestToClipboard()">Copy Digest to Clipboard</button>
+        <button class="btn btn--secondary btn--small" onclick="createEmailDraft()">Create Email Draft</button>
+      </div>
+      
+      <div class="digest-container">
+        <div class="digest-card">
+          <div class="digest-header">
+            <h2 class="digest-title">Top 10 Jobs For You — 9AM Digest</h2>
+            <p class="digest-date">${todayFormatted}</p>
+          </div>
+          
+          <div class="digest-jobs">
+            ${digest.jobs.map((job, index) => `
+              <div class="digest-job">
+                <div class="digest-job__number">${index + 1}</div>
+                <div class="digest-job__content">
+                  <h3 class="digest-job__title">${job.title}</h3>
+                  <p class="digest-job__company">${job.company}</p>
+                  <div class="digest-job__details">
+                    <span>📍 ${job.location}</span>
+                    <span>💼 ${job.mode}</span>
+                    <span>⏱️ ${job.experience}</span>
+                  </div>
+                  <div class="digest-job__footer">
+                    <span class="digest-job__match">Match Score: ${job.matchScore}%</span>
+                    <button class="btn btn--primary btn--small" onclick="applyJob('${job.applyUrl}')">Apply</button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="digest-footer">
+            <p>This digest was generated based on your preferences.</p>
+            <p class="digest-note">Demo Mode: Daily 9AM trigger simulated manually.</p>
+          </div>
+        </div>
       </div>
     </div>
   `;
