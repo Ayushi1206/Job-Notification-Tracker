@@ -502,3 +502,196 @@
     width: 100%;
   }
 }
+
+/* STATUS BADGE */
+.status-badge {
+  padding: 4px var(--space-xs);
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge--neutral {
+  background: #F5F5F5;
+  color: #666666;
+}
+
+.status-badge--blue {
+  background: #E3F2FD;
+  color: #1976D2;
+}
+
+.status-badge--red {
+  background: #FFEBEE;
+  color: #C62828;
+}
+
+.status-badge--green {
+  background: #E8F5E9;
+  color: var(--success);
+}
+
+/* STATUS BUTTONS */
+.job-card__status-buttons {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.btn--status {
+  padding: 6px var(--space-sm);
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: #666666;
+  transition: all var(--transition);
+}
+
+.btn--status:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+.btn--status-active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: var(--surface);
+}
+
+.btn--status-active:hover {
+  background: #6D0000;
+  border-color: #6D0000;
+}
+
+/* TOAST NOTIFICATION */
+.toast {
+  position: fixed;
+  bottom: var(--space-lg);
+  right: var(--space-lg);
+  background: var(--text-primary);
+  color: var(--surface);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: 4px;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all var(--transition);
+  z-index: 2000;
+}
+
+.toast--show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* STATUS UPDATES SECTION */
+.status-updates {
+  margin-top: var(--space-xl);
+}
+
+.status-updates__title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: var(--space-md);
+}
+
+.status-updates__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.status-update {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: 4px;
+}
+
+.status-update--blue {
+  border-left-color: #1976D2;
+}
+
+.status-update--red {
+  border-left-color: #C62828;
+}
+
+.status-update--green {
+  border-left-color: var(--success);
+}
+
+.status-update--neutral {
+  border-left-color: #666666;
+}
+
+.status-update__content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 2px;
+  color: var(--text-primary);
+}
+
+.status-update__company {
+  font-size: 13px;
+  color: #666666;
+  margin: 0;
+}
+
+.status-update__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.status-update__status {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-update__date {
+  font-size: 11px;
+  color: #999999;
+}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+  .job-card__status-buttons {
+    gap: 4px;
+  }
+  
+  .btn--status {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+  
+  .toast {
+    bottom: var(--space-md);
+    right: var(--space-md);
+    left: var(--space-md);
+  }
+  
+  .status-update {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
+  }
+  
+  .status-update__meta {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+}

@@ -138,3 +138,10 @@ select[multiple] {
 select[multiple] option {
   padding: 4px;
 }
+
+/* FILTER BAR ENHANCEMENT */
+@media (max-width: 1200px) {
+  .filter-bar {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}

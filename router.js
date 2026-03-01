@@ -28,6 +28,7 @@ function renderDashboard() {
   const modes = ['Remote', 'Hybrid', 'Onsite'];
   const experiences = ['Fresher', '0-1', '1-3', '3-5'];
   const sources = ['LinkedIn', 'Naukri', 'Indeed'];
+  const statuses = ['Not Applied', 'Applied', 'Rejected', 'Selected'];
   
   // Preferences banner
   const preferencesBanner = !userPreferences ? `
@@ -87,6 +88,11 @@ function renderDashboard() {
         <select class="input filter-select" onchange="updateFilter('source', this.value)">
           <option value="">All Sources</option>
           ${sources.map(src => `<option value="${src}" ${currentFilters.source === src ? 'selected' : ''}>${src}</option>`).join('')}
+        </select>
+        
+        <select class="input filter-select" onchange="updateFilter('status', this.value)">
+          <option value="">All Status</option>
+          ${statuses.map(status => `<option value="${status}" ${currentFilters.status === status ? 'selected' : ''}>${status}</option>`).join('')}
         </select>
         
         <select class="input filter-select" onchange="updateFilter('sort', this.value)">
@@ -230,6 +236,49 @@ function renderDigest() {
             <p class="digest-note">Demo Mode: Daily 9AM trigger simulated manually.</p>
           </div>
         </div>
+        
+        ${renderStatusUpdates()}
+      </div>
+    </div>
+  `;
+}
+
+function renderStatusUpdates() {
+  const history = getStatusHistory();
+  
+  if (history.length === 0) {
+    return '';
+  }
+  
+  return `
+    <div class="status-updates">
+      <h2 class="status-updates__title">Recent Status Updates</h2>
+      <div class="status-updates__list">
+        ${history.slice(0, 10).map(update => {
+          const job = jobsData.find(j => j.id === update.jobId);
+          if (!job) return '';
+          
+          const date = new Date(update.date);
+          const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          
+          let statusClass = 'status-update--neutral';
+          if (update.status === 'Applied') statusClass = 'status-update--blue';
+          else if (update.status === 'Rejected') statusClass = 'status-update--red';
+          else if (update.status === 'Selected') statusClass = 'status-update--green';
+          
+          return `
+            <div class="status-update ${statusClass}">
+              <div class="status-update__content">
+                <h4 class="status-update__job">${job.title}</h4>
+                <p class="status-update__company">${job.company}</p>
+              </div>
+              <div class="status-update__meta">
+                <span class="status-update__status">${update.status}</span>
+                <span class="status-update__date">${dateStr}</span>
+              </div>
+            </div>
+          `;
+        }).join('')}
       </div>
     </div>
   `;

@@ -7,11 +7,13 @@ let currentFilters = {
   experience: '',
   source: '',
   sort: 'latest',
-  showOnlyMatches: false
+  showOnlyMatches: false,
+  status: ''
 };
 
 let selectedJobId = null;
 let userPreferences = null;
+let jobStatuses = {};
 
 // Get saved jobs from localStorage
 function getSavedJobs() {
@@ -29,6 +31,46 @@ function getUserPreferences() {
 function saveUserPreferences(preferences) {
   localStorage.setItem('jobTrackerPreferences', JSON.stringify(preferences));
   userPreferences = preferences;
+}
+
+// Get job statuses from localStorage
+function getJobStatuses() {
+  const statuses = localStorage.getItem('jobTrackerStatus');
+  return statuses ? JSON.parse(statuses) : {};
+}
+
+// Get status for a specific job
+function getJobStatus(jobId) {
+  return jobStatuses[jobId] || 'Not Applied';
+}
+
+// Update job status
+function updateJobStatus(jobId, status) {
+  jobStatuses[jobId] = status;
+  localStorage.setItem('jobTrackerStatus', JSON.stringify(jobStatuses));
+  
+  // Add to status history
+  const history = getStatusHistory();
+  history.unshift({
+    jobId,
+    status,
+    date: new Date().toISOString()
+  });
+  // Keep only last 20 updates
+  localStorage.setItem('jobTrackerStatusHistory', JSON.stringify(history.slice(0, 20)));
+  
+  // Show toast notification
+  showToast(`Status updated: ${status}`);
+  
+  // Re-render current route
+  const currentRoute = window.location.hash.slice(1) || 'landing';
+  renderRoute(currentRoute);
+}
+
+// Get status history
+function getStatusHistory() {
+  const history = localStorage.getItem('jobTrackerStatusHistory');
+  return history ? JSON.parse(history) : [];
 }
 
 // Calculate match score for a job
@@ -152,7 +194,11 @@ function filterJobs(jobs) {
     const matchesThreshold = !currentFilters.showOnlyMatches || 
       (userPreferences && job.matchScore >= (userPreferences.minMatchScore || 40));
     
-    return matchesKeyword && matchesLocation && matchesMode && matchesExperience && matchesSource && matchesThreshold;
+    // Status filter
+    const matchesStatus = !currentFilters.status || 
+      getJobStatus(job.id) === currentFilters.status;
+    
+    return matchesKeyword && matchesLocation && matchesMode && matchesExperience && matchesSource && matchesThreshold && matchesStatus;
   });
 
   // Sort
@@ -188,6 +234,13 @@ function renderJobCard(job, showUnsave = false) {
   
   const matchBadge = userPreferences ? `<span class="match-badge ${matchBadgeClass}">${matchScore}% Match</span>` : '';
   
+  // Status badge
+  const status = getJobStatus(job.id);
+  let statusBadgeClass = 'status-badge--neutral';
+  if (status === 'Applied') statusBadgeClass = 'status-badge--blue';
+  else if (status === 'Rejected') statusBadgeClass = 'status-badge--red';
+  else if (status === 'Selected') statusBadgeClass = 'status-badge--green';
+  
   return `
     <div class="job-card">
       <div class="job-card__header">
@@ -195,8 +248,9 @@ function renderJobCard(job, showUnsave = false) {
           <h3 class="job-card__title">${job.title}</h3>
           <p class="job-card__company">${job.company}</p>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
           ${matchBadge}
+          <span class="status-badge ${statusBadgeClass}">${status}</span>
           <span class="job-card__source job-card__source--${job.source.toLowerCase()}">${job.source}</span>
         </div>
       </div>
@@ -205,6 +259,13 @@ function renderJobCard(job, showUnsave = false) {
         <span class="job-card__detail">📍 ${job.location}</span>
         <span class="job-card__detail">💼 ${job.mode}</span>
         <span class="job-card__detail">⏱️ ${job.experience}</span>
+      </div>
+      
+      <div class="job-card__status-buttons">
+        <button class="btn btn--status ${status === 'Not Applied' ? 'btn--status-active' : ''}" onclick="updateJobStatus(${job.id}, 'Not Applied')">Not Applied</button>
+        <button class="btn btn--status ${status === 'Applied' ? 'btn--status-active' : ''}" onclick="updateJobStatus(${job.id}, 'Applied')">Applied</button>
+        <button class="btn btn--status ${status === 'Rejected' ? 'btn--status-active' : ''}" onclick="updateJobStatus(${job.id}, 'Rejected')">Rejected</button>
+        <button class="btn btn--status ${status === 'Selected' ? 'btn--status-active' : ''}" onclick="updateJobStatus(${job.id}, 'Selected')">Selected</button>
       </div>
       
       <div class="job-card__footer">
@@ -329,6 +390,35 @@ function savePreferencesFromForm() {
 // Initialize preferences on load
 function initializePreferences() {
   userPreferences = getUserPreferences();
+  jobStatuses = getJobStatuses();
+}
+
+// Show toast notification
+function showToast(message) {
+  // Remove existing toast if any
+  const existingToast = document.querySelector('.toast');
+  if (existingToast) {
+    existingToast.remove();
+  }
+  
+  // Create toast
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  // Show toast
+  setTimeout(() => {
+    toast.classList.add('toast--show');
+  }, 10);
+  
+  // Hide and remove toast after 3 seconds
+  setTimeout(() => {
+    toast.classList.remove('toast--show');
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  }, 3000);
 }
 
 // Get today's date in YYYY-MM-DD format
