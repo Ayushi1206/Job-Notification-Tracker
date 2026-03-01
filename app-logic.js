@@ -97,6 +97,96 @@ function resetTestStatus() {
   }
 }
 
+// Get proof artifacts from localStorage
+function getProofArtifacts() {
+  const artifacts = localStorage.getItem('jobTrackerProofArtifacts');
+  return artifacts ? JSON.parse(artifacts) : {
+    lovableLink: '',
+    githubLink: '',
+    deployedUrl: ''
+  };
+}
+
+// Save proof artifacts
+function saveProofArtifacts(artifacts) {
+  localStorage.setItem('jobTrackerProofArtifacts', JSON.stringify(artifacts));
+}
+
+// Validate URL format
+function isValidUrl(url) {
+  if (!url) return false;
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Update proof artifact
+function updateProofArtifact(field, value) {
+  const artifacts = getProofArtifacts();
+  artifacts[field] = value;
+  saveProofArtifacts(artifacts);
+}
+
+// Check if all proof artifacts are valid
+function areProofArtifactsComplete() {
+  const artifacts = getProofArtifacts();
+  return isValidUrl(artifacts.lovableLink) && 
+         isValidUrl(artifacts.githubLink) && 
+         isValidUrl(artifacts.deployedUrl);
+}
+
+// Get project status
+function getProjectStatus() {
+  const testResults = getTestResults();
+  const allTestsPassed = Object.values(testResults).filter(v => v).length === 10;
+  const artifactsComplete = areProofArtifactsComplete();
+  
+  if (allTestsPassed && artifactsComplete) {
+    return 'Shipped';
+  } else if (Object.keys(testResults).length > 0 || Object.values(getProofArtifacts()).some(v => v)) {
+    return 'In Progress';
+  }
+  return 'Not Started';
+}
+
+// Copy final submission
+function copyFinalSubmission() {
+  const artifacts = getProofArtifacts();
+  
+  if (!areProofArtifactsComplete()) {
+    alert('Please provide all required links before copying submission.');
+    return;
+  }
+  
+  const text = `Job Notification Tracker — Final Submission
+
+Lovable Project:
+${artifacts.lovableLink}
+
+GitHub Repository:
+${artifacts.githubLink}
+
+Live Deployment:
+${artifacts.deployedUrl}
+
+Core Features:
+- Intelligent match scoring
+- Daily digest simulation
+- Status tracking
+- Test checklist enforced
+
+------------------------------------------------------------------------------------`;
+  
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Final submission copied to clipboard!');
+  }).catch(() => {
+    alert('Failed to copy. Please try again.');
+  });
+}
+
 // Calculate match score for a job
 function calculateMatchScore(job) {
   if (!userPreferences) return 0;

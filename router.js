@@ -388,15 +388,142 @@ function renderSettings() {
 }
 
 function renderProof() {
+  const artifacts = getProofArtifacts();
+  const testResults = getTestResults();
+  const totalTests = 10;
+  const passedTests = Object.values(testResults).filter(v => v).length;
+  const allTestsPassed = passedTests === totalTests;
+  const artifactsComplete = areProofArtifactsComplete();
+  const projectStatus = getProjectStatus();
+  
+  // Step completion
+  const steps = [
+    { name: 'Design System Setup', completed: true },
+    { name: 'Route Skeleton', completed: true },
+    { name: 'Job Data & Rendering', completed: true },
+    { name: 'Preference Logic & Scoring', completed: true },
+    { name: 'Daily Digest Engine', completed: true },
+    { name: 'Status Tracking', completed: true },
+    { name: 'Test Checklist', completed: allTestsPassed },
+    { name: 'Proof & Submission', completed: artifactsComplete }
+  ];
+  
+  const completedSteps = steps.filter(s => s.completed).length;
+  
+  let statusBadgeClass = 'status-badge--neutral';
+  if (projectStatus === 'In Progress') statusBadgeClass = 'status-badge--blue';
+  else if (projectStatus === 'Shipped') statusBadgeClass = 'status-badge--green';
+  
   return `
     <div class="route-page">
-      <h1 class="route-page__title">Proof</h1>
-      <p class="route-page__subtitle">Artifact collection placeholder.</p>
+      <div class="proof-header">
+        <div>
+          <h1 class="route-page__title">Proof & Submission</h1>
+          <p class="route-page__subtitle">Project 1 — Job Notification Tracker</p>
+        </div>
+        <span class="status-badge ${statusBadgeClass}" style="font-size: 14px; padding: 8px 16px;">
+          ${projectStatus}
+        </span>
+      </div>
       
-      <div class="card">
-        <h3 class="card__title">Proof Collection</h3>
-        <div class="card__content">
-          <p>This section will collect proof artifacts in future steps.</p>
+      ${projectStatus === 'Shipped' ? `
+        <div class="completion-message">
+          <strong>✓ Project 1 Shipped Successfully.</strong>
+        </div>
+      ` : ''}
+      
+      <div class="proof-section">
+        <h2 class="proof-section__title">A) Step Completion Summary</h2>
+        <div class="proof-section__content">
+          <div class="step-summary">
+            <div class="step-summary__header">
+              <span class="step-summary__label">Progress:</span>
+              <span class="step-summary__value">${completedSteps} / ${steps.length} Steps Completed</span>
+            </div>
+            <div class="step-list">
+              ${steps.map((step, index) => `
+                <div class="step-item ${step.completed ? 'step-item--completed' : ''}">
+                  <span class="step-item__number">${index + 1}</span>
+                  <span class="step-item__name">${step.name}</span>
+                  <span class="step-item__status">${step.completed ? '✓ Completed' : 'Pending'}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="proof-section">
+        <h2 class="proof-section__title">B) Artifact Collection</h2>
+        <div class="proof-section__content">
+          <div class="artifact-form">
+            <div class="form-group">
+              <label class="form-label">Lovable Project Link *</label>
+              <input 
+                type="url" 
+                id="lovableLink"
+                class="input ${artifacts.lovableLink && !isValidUrl(artifacts.lovableLink) ? 'input--error' : ''}"
+                placeholder="https://lovable.dev/projects/..."
+                value="${artifacts.lovableLink}"
+                onblur="updateProofArtifact('lovableLink', this.value); renderRoute('proof')"
+              >
+              ${artifacts.lovableLink && !isValidUrl(artifacts.lovableLink) ? 
+                '<p class="form-error">Please enter a valid URL</p>' : ''}
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">GitHub Repository Link *</label>
+              <input 
+                type="url" 
+                id="githubLink"
+                class="input ${artifacts.githubLink && !isValidUrl(artifacts.githubLink) ? 'input--error' : ''}"
+                placeholder="https://github.com/username/repo"
+                value="${artifacts.githubLink}"
+                onblur="updateProofArtifact('githubLink', this.value); renderRoute('proof')"
+              >
+              ${artifacts.githubLink && !isValidUrl(artifacts.githubLink) ? 
+                '<p class="form-error">Please enter a valid URL</p>' : ''}
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Deployed URL (Vercel or equivalent) *</label>
+              <input 
+                type="url" 
+                id="deployedUrl"
+                class="input ${artifacts.deployedUrl && !isValidUrl(artifacts.deployedUrl) ? 'input--error' : ''}"
+                placeholder="https://your-project.vercel.app"
+                value="${artifacts.deployedUrl}"
+                onblur="updateProofArtifact('deployedUrl', this.value); renderRoute('proof')"
+              >
+              ${artifacts.deployedUrl && !isValidUrl(artifacts.deployedUrl) ? 
+                '<p class="form-error">Please enter a valid URL</p>' : ''}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="proof-section">
+        <h2 class="proof-section__title">Final Submission</h2>
+        <div class="proof-section__content">
+          ${!allTestsPassed || !artifactsComplete ? `
+            <div class="submission-requirements">
+              <p><strong>Requirements to submit:</strong></p>
+              <ul>
+                <li ${allTestsPassed ? 'class="requirement-met"' : ''}>
+                  ${allTestsPassed ? '✓' : '○'} All 10 test checklist items passed (${passedTests}/10)
+                </li>
+                <li ${artifactsComplete ? 'class="requirement-met"' : ''}>
+                  ${artifactsComplete ? '✓' : '○'} All 3 artifact links provided
+                </li>
+              </ul>
+              ${!allTestsPassed ? '<p class="submission-note">Complete the <a href="#test">Test Checklist</a> first.</p>' : ''}
+            </div>
+          ` : `
+            <div class="submission-ready">
+              <p>All requirements met. Ready to submit.</p>
+              <button class="btn btn--primary" onclick="copyFinalSubmission()">Copy Final Submission</button>
+            </div>
+          `}
         </div>
       </div>
     </div>
